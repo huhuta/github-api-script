@@ -4,8 +4,9 @@ Authorization: token {{github-token}}
 
 ###
 
-POST {{base_domain}}/repos/yoyota/pi-camera-capture-trigger/transfer
+POST {{base_domain}}/repos/yoyota/pi-camera-capture-server/transfer
 Content-Type: application/json
+Accept: application/vnd.github.nightshade-preview+json
 Authorization: token {{github-token}}
 
 {
