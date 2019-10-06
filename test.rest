@@ -1,0 +1,4 @@
+@base_domain = https://api.github.com
+GET {{base_domain}}/user/repos
+Content-Type: application/json
+Authorization: token {{github-token}}
