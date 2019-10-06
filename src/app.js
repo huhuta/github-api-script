@@ -1,15 +1,24 @@
+/* eslint-disable no-unused-vars */
 const axios = require('axios')
 const camelcaseKeys = require('camelcase-keys')
+const snakecaseKeys = require('snakecase-keys')
 
 const hub = axios.create({
   baseURL: 'https://api.github.com',
   headers: { Authorization: `token ${process.env.TOKEN}` }
 })
+// hub.interceptors.request.use((config) => {
+//   console.log(config)
+//   return config
+// console.log(snakecaseKeys(request.data))
+// return { ...request, data: snakecaseKeys(config.data) }
+// })
 hub.interceptors.response.use(
   (response) => {
     return camelcaseKeys(response.data, { deep: true })
   },
   (error) => {
+    // eslint-disable-next-line no-console
     console.error(error)
     return Promise.reject(error)
   }
@@ -19,8 +28,8 @@ function filterKeys({ id, fullName }) {
   return { id, fullName }
 }
 
-async function listRepo() {
-  const repos = await hub.get('/user/repos?type=owner')
+async function listRepo(type = 'all') {
+  const repos = await hub.get(`/user/repos?type=${type}`)
   const activeRepos = repos.filter(({ archived }) => !archived)
   return activeRepos.map(filterKeys)
 }
@@ -33,18 +42,18 @@ function archiveRepo({ fullName }) {
   hub.patch(`/repos/${fullName}`, { archived: true })
 }
 
-// eslint-disable-next-line no-unused-vars
-async function organizeRepos(deleteList, archiveList) {
-  const repos = await listRepo()
-  const [deleteRepos, archiveRepos] = [deleteList, archiveList].map((list) => {
-    return repos.filter(({ fullName }) =>
-      list.find((keyword) => fullName.includes(keyword))
-    )
-  })
-  archiveRepos.forEach(archiveRepo)
-  deleteRepos.forEach(deleteRepo)
+function findRepos(list, repos) {
+  return list.map((keyword) =>
+    repos.find(({ fullName }) => fullName.includes(keyword))
+  )
 }
 
-async function main() {}
+async function operate(list, operation) {
+  const repos = await listRepo()
+  const matched = findRepos(list, repos)
+  matched.forEach(operation)
+}
+
+function main() {}
 
 main()

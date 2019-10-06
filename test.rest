@@ -1,4 +1,13 @@
 @base_domain = https://api.github.com
 GET {{base_domain}}/user/repos
+Authorization: token {{github-token}}
+
+###
+
+POST {{base_domain}}/repos/yoyota/pi-camera-capture-trigger/transfer
 Content-Type: application/json
 Authorization: token {{github-token}}
+
+{
+    "new_owner": "yoyota-pose-estimation"
+}
