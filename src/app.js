@@ -5,9 +5,15 @@ const hub = axios.create({
   baseURL: 'https://api.github.com',
   headers: { Authorization: `token ${process.env.TOKEN}` }
 })
-hub.interceptors.response.use((response) => {
-  return camelcaseKeys(response.data, { deep: true })
-})
+hub.interceptors.response.use(
+  (response) => {
+    return camelcaseKeys(response.data, { deep: true })
+  },
+  (error) => {
+    console.error(error)
+    return Promise.reject(error)
+  }
+)
 
 function filterKeys({ id, fullName }) {
   return { id, fullName }
@@ -19,17 +25,26 @@ async function listRepo() {
   return activeRepos.map(filterKeys)
 }
 
-function deleteRepo(repo) {
-  hub.delete(`/repos/huhuta/${repo}`)
+function deleteRepo({ fullName }) {
+  hub.delete(`/repos/${fullName}`)
 }
 
-function archiveRepo(repo) {
-  hub.patch(`/repos/huhuta/${repo}`, { archived: true })
+function archiveRepo({ fullName }) {
+  hub.patch(`/repos/${fullName}`, { archived: true })
 }
 
-async function main() {
+// eslint-disable-next-line no-unused-vars
+async function organizeRepos(deleteList, archiveList) {
   const repos = await listRepo()
-  console.log(repos)
+  const [deleteRepos, archiveRepos] = [deleteList, archiveList].map((list) => {
+    return repos.filter(({ fullName }) =>
+      list.find((keyword) => fullName.includes(keyword))
+    )
+  })
+  archiveRepos.forEach(archiveRepo)
+  deleteRepos.forEach(deleteRepo)
 }
+
+async function main() {}
 
 main()
